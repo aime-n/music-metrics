@@ -92,8 +92,18 @@ if page == "Audience Map by State":
     
     fig.update_geos(
         fitbounds="locations",
-        visible=False
+        visible=False,
+        bgcolor='black'
     )
+
+    fig.update_layout(
+    height=700,  # Increase the figure height (adjust as needed)
+    margin={"r":0,"t":50,"l":0,"b":0},  # Reduce margins to maximize map area
+    paper_bgcolor='black',  # Set the paper (background) color to black
+    plot_bgcolor='black',   # Set the plot (map area) background to black
+    font_color='white'      # Set font color to white for better visibility
+    )
+
     
     # Display the map
     st.plotly_chart(fig, use_container_width=True)
