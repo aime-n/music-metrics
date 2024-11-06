@@ -1,0 +1,33 @@
+{
+    "data": [
+      {
+        "name": "audience_state",
+        "period": "lifetime",
+        "values": [
+          {
+            "value": {
+              "SP": 30.5,
+              "RJ": 20.0,
+              "MG": 15.0,
+              "BA": 10.0,
+              "RS": 8.0,
+              "PR": 7.0,
+              "PE": 5.0,
+              "CE": 4.0,
+              "PA": 3.0,
+              "SC": 2.0,
+              "Other": 5.5
+            }
+          }
+        ],
+        "title": "Audience by State",
+        "description": "The demographic distribution of your audience across Brazilian states.",
+        "id": "17841405309211844/insights/audience_state/lifetime"
+      }
+    ],
+    "paging": {
+      "previous": "https://graph.facebook.com/v13.0/17841405309211844/insights/audience_state/lifetime?access_token=YOUR_ACCESS_TOKEN&since=START_TIME&until=END_TIME",
+      "next": "https://graph.facebook.com/v13.0/17841405309211844/insights/audience_state/lifetime?access_token=YOUR_ACCESS_TOKEN&since=START_TIME&until=END_TIME"
+    }
+  }
+  

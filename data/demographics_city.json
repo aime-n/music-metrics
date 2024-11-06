@@ -1,0 +1,33 @@
+{
+    "data": [
+      {
+        "name": "audience_city",
+        "period": "lifetime",
+        "values": [
+          {
+            "value": {
+              "São Paulo": 25.0,
+              "Rio de Janeiro": 18.5,
+              "Belo Horizonte": 12.0,
+              "Salvador": 10.0,
+              "Fortaleza": 8.0,
+              "Curitiba": 7.5,
+              "Recife": 6.0,
+              "Porto Alegre": 5.5,
+              "Brasília": 4.0,
+              "Manaus": 3.0,
+              "Outros": 6.5
+            }
+          }
+        ],
+        "title": "Audience by City",
+        "description": "The demographic distribution of your audience across Brazilian cities.",
+        "id": "17841405309211844/insights/audience_city/lifetime"
+      }
+    ],
+    "paging": {
+      "previous": "https://graph.facebook.com/v13.0/17841405309211844/insights/audience_city/lifetime?access_token=YOUR_ACCESS_TOKEN&since=START_TIME&until=END_TIME",
+      "next": "https://graph.facebook.com/v13.0/17841405309211844/insights/audience_city/lifetime?access_token=YOUR_ACCESS_TOKEN&since=START_TIME&until=END_TIME"
+    }
+  }
+  

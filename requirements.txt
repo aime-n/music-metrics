@@ -1,0 +1,8 @@
+dash
+requests
+pandas
+plotly
+matplotlib
+dash_bootstrap_components
+numpy
+streamlit

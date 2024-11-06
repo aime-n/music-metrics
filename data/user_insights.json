@@ -1,0 +1,15 @@
+{
+    "data": [
+      {
+        "date": "2023-01-01",
+        "reach": 3000,
+        "impressions": 5000,
+        "likes": 200,
+        "comments": 50,
+        "shares": 20,
+        "follower_growth": 30,
+        "ctr": 0.05
+      }
+    ]
+  }
+  
