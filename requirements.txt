@@ -6,3 +6,5 @@ matplotlib
 dash_bootstrap_components
 numpy
 streamlit
+seaborn
+nbformat

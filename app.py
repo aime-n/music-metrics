@@ -1,19 +1,31 @@
-# app.py
-
 import streamlit as st
 import pandas as pd
-import json
 import plotly.express as px
 import requests
+import numpy as np
 
-# Set the page configuration
+# Set page configuration
 st.set_page_config(
     page_title="Instagram Metrics Dashboard",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="expanded"
 )
 
-# Define a mapping from state names to state codes (ISO 3166-2)
+# Sidebar for navigation between different pages
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Select Page", ["Audience Map by State", "Bar Chart by State", "Reach vs Impressions"])
+
+# Fetch the GeoJSON data for Brazilian states
+@st.cache_data
+def get_brazil_geojson():
+    geojson_url = 'https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson'
+    response = requests.get(geojson_url)
+    return response.json()
+
+# Load the GeoJSON data
+brazil_geojson = get_brazil_geojson()
+
+# Define list of Brazilian states and their codes
 brazil_states = {
     "Acre": "AC",
     "Alagoas": "AL",
@@ -44,136 +56,37 @@ brazil_states = {
     "Tocantins": "TO"
 }
 
-# Function to load JSON data
-@st.cache_data
-def load_json(file_path):
-    with open(file_path) as f:
-        return json.load(f)
+# Generate synthetic demographic data for each state
+def generate_synthetic_data():
+    np.random.seed(42)
+    data = {
+        "State": list(brazil_states.keys()),
+        "State_Code": list(brazil_states.values()),
+        "Audience_Percentage": np.random.randint(1, 20, size=len(brazil_states))
+    }
+    brazil_df = pd.DataFrame(data)
+    total = brazil_df['Audience_Percentage'].sum()
+    brazil_df['Audience_Percentage'] = (brazil_df['Audience_Percentage'] / total) * 100
+    return brazil_df
 
-# Load data
-user_insights = load_json('data/user_insights.json')
-demographics_city = load_json('data/demographics_city.json')
-demographics_state = load_json('data/demographics_state.json')
+# Load synthetic data
+brazil_df = generate_synthetic_data()
 
-# Convert JSON data to DataFrames
-def json_to_df(json_data, metric_name):
-    data = json_data['data']
-    for item in data:
-        if item['name'] == metric_name:
-            values = item['values'][0]['value']
-            df = pd.DataFrame(list(values.items()), columns=['Category', 'Percentage'])
-            return df
-    return pd.DataFrame()
-
-# Extract DataFrames
-# Example metrics: reach, impressions, likes, comments, shares, follower_growth, ctr
-# Assuming 'user_insights.json' has these metrics per date
-
-def extract_user_insights(json_data):
-    data = json_data['data']
-    df = pd.DataFrame(data)
-    # Convert 'date' to datetime
-    df['date'] = pd.to_datetime(df['date'])
-    return df
-
-user_insights_df = extract_user_insights(user_insights)
-
-# Demographics DataFrames
-demographics_city_df = json_to_df(demographics_city, 'audience_city')
-demographics_state_df = json_to_df(demographics_state, 'audience_state')
-
-# Map State names to State Codes
-# Assuming 'demographics_state_df' has 'State' as state codes (e.g., "SP")
-# If 'State' is state names, map them to codes
-if demographics_state_df['Category'].dtype == object and demographics_state_df['Category'].str.len().max() > 2:
-    demographics_state_df['State_Code'] = demographics_state_df['Category'].map(brazil_states)
-else:
-    demographics_state_df['State_Code'] = demographics_state_df['Category']
-
-# Remove 'Other' if present, or handle it appropriately
-demographics_state_df = demographics_state_df[demographics_state_df['State_Code'].notna()]
-
-# Sidebar for navigation
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Reach vs Impressions", "Interactions", "Demographics"])
-
-# Home Page
-if page == "Home":
-    st.title("Instagram Metrics Dashboard")
-    st.markdown("""
-    Welcome to the Instagram Metrics Dashboard. Use the navigation bar to explore different metrics and insights.
-    """)
-    
-# Reach vs Impressions Page
-elif page == "Reach vs Impressions":
-    st.title("Reach vs. Impressions Over Time")
-    
-    # Create the plot
-    fig = px.line(
-        user_insights_df,
-        x='date',
-        y=['reach', 'impressions'],
-        markers=True,
-        labels={'value': 'Count', 'variable': 'Metric'},
-        title='Reach vs. Impressions Over Time',
-        template='plotly_white'
-    )
-    
-    fig.update_layout(
-        xaxis_title='Date',
-        yaxis_title='Count'
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-    
-# Interactions Page
-elif page == "Interactions":
-    st.title("Total Interactions by Content Type")
-    
-    # Assuming 'user_insights_df' has a 'Content_Type' column
-    if 'Content_Type' in user_insights_df.columns:
-        # Aggregate interactions
-        interactions_df = user_insights_df.groupby('Content_Type')[['likes', 'comments', 'shares']].sum().reset_index()
-        interactions_df['Total_Interactions'] = interactions_df['likes'] + interactions_df['comments'] + interactions_df['shares']
-        
-        # Create bar chart
-        fig = px.bar(
-            interactions_df,
-            x='Content_Type',
-            y='Total_Interactions',
-            color='Content_Type',
-            labels={'Total_Interactions': 'Total Interactions', 'Content_Type': 'Content Type'},
-            title='Total Interactions by Content Type',
-            template='plotly_white'
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.warning("No 'Content_Type' data available in user insights.")
-    
-# Demographics Page
-elif page == "Demographics":
+# Page 1: Audience Map by State
+if page == "Audience Map by State":
     st.title("Audience Distribution Across Brazilian States")
+    st.write("This map visualizes the audience distribution across Brazilian states as a percentage of the total audience.")
     
-    # Fetch GeoJSON data for Brazilian states
-    @st.cache_data
-    def get_geojson(url):
-        response = requests.get(url)
-        return response.json()
-    
-    geojson_url = 'https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson'
-    brazil_geojson = get_geojson(geojson_url)
-    
-    # Create choropleth map
+    # Create a choropleth map
     fig = px.choropleth(
-        demographics_state_df,
+        brazil_df,
         geojson=brazil_geojson,
         locations='State_Code',
-        color='Percentage',
+        color='Audience_Percentage',
         color_continuous_scale='Blues',
         featureidkey='properties.sigla',
         scope='south america',
-        labels={'Percentage': 'Audience (%)'},
+        labels={'Audience_Percentage': 'Audience (%)'},
         title='Instagram Audience Distribution Across Brazilian States'
     )
     
@@ -182,11 +95,57 @@ elif page == "Demographics":
         visible=False
     )
     
+    # Display the map
+    st.plotly_chart(fig, use_container_width=True)
+
+# Page 2: Bar Chart by State
+elif page == "Bar Chart by State":
+    st.title("Audience Distribution by State")
+    st.write("This bar chart displays the audience distribution percentage for each Brazilian state.")
+    
+    # Create a bar chart
+    fig = px.bar(
+        brazil_df,
+        x='State',
+        y='Audience_Percentage',
+        color='Audience_Percentage',
+        color_continuous_scale='Blues',
+        labels={'Audience_Percentage': 'Audience (%)', 'State': 'Brazilian State'},
+        title='Instagram Audience Distribution by State'
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+# Page 3: Reach vs Impressions Line Chart
+elif page == "Reach vs Impressions":
+    st.title("Reach vs. Impressions Over Time")
+    st.write("This line chart displays synthetic data for reach and impressions over a period of time.")
+    
+    # Generate synthetic data for reach and impressions
+    dates = pd.date_range(start="2023-01-01", periods=30, freq="D")
+    reach = np.random.randint(2000, 5000, size=len(dates))
+    impressions = reach + np.random.randint(500, 2000, size=len(dates))
+    
+    reach_impressions_df = pd.DataFrame({
+        "Date": dates,
+        "Reach": reach,
+        "Impressions": impressions
+    })
+    
+    # Create a line chart
+    fig = px.line(
+        reach_impressions_df,
+        x='Date',
+        y=['Reach', 'Impressions'],
+        markers=True,
+        labels={'value': 'Count', 'variable': 'Metric'},
+        title='Reach vs. Impressions Over Time'
+    )
+    
     fig.update_layout(
-        coloraxis_colorbar=dict(
-            title="Audience Percentage",
-            ticksuffix="%",
-        )
+        xaxis_title="Date",
+        yaxis_title="Count",
+        legend_title="Metrics"
     )
     
     st.plotly_chart(fig, use_container_width=True)
